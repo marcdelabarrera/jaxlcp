@@ -66,15 +66,15 @@ def lcp_fischer(M, q, *, tol=1e-6, maxit=10, w0=None):
         w_hat = spsolve(G.data, G.indices, G.indptr, G @ w.flatten('F') - T(M, q, w))
         w_hat = w_hat.reshape(n, 2, order='F')
 
-        def armijo_cond(k):
-            t_k = 0.5**k[0]
+        def armijo_cond(k:int):
+            t_k = 0.5**k
             w_next = w + t_k * (w_hat - w)
             return jnp.linalg.norm(T(M, q, w_next)) > (1 - lambd * t_k) * jnp.linalg.norm(T(M, q, w))
 
 
         k = jax.lax.while_loop(armijo_cond,
-                                lambda k: (k[0]+1,),
-                                (0,))[0]
+                                lambda k: k+1,
+                                0)
 
         w_next = w + 0.5**k * (w_hat - w)
         return w_next, k + 1
